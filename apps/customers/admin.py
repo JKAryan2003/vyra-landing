@@ -1,14 +1,17 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin
+
 from .models import Customer
 
 
 @admin.register(Customer)
-class CustomerAdmin(admin.ModelAdmin):
+class CustomerAdmin(ModelAdmin):
     list_display = (
         "id",
         "name",
         "mobile",
         "email",
+        "area",
         "category",
         "spend_range",
         "notify_me",
@@ -34,4 +37,13 @@ class CustomerAdmin(admin.ModelAdmin):
         "brands",
     )
 
-    readonly_fields = ("created_at",)
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+    ordering = ("-created_at",)
+
+    list_per_page = 20
+
+    date_hierarchy = "created_at"

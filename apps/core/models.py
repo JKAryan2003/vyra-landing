@@ -6,6 +6,18 @@ class Category(models.Model):
   name = models.CharField(max_length=100, unique=True)
   slug = models.SlugField(unique=True)
 
+
+  display_order = models.PositiveIntegerField(default=0)
+  is_active = models.BooleanField(default=True)
+
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  class Meta:
+    verbose_name = "Category"
+    verbose_name_plural = "Categories"
+    ordering = ["display_order", "name"]
+
   def save(self, *args, **kwargs):
     if not self.slug:
       self.slug = slugify(self.name)
@@ -18,6 +30,17 @@ class Category(models.Model):
 class SubCategory(models.Model):
   name = models.CharField(max_length=100, unique=True)
   slug = models.SlugField(unique=True)
+
+  display_order = models.PositiveIntegerField(default=0)
+  is_active = models.BooleanField(default=True)
+
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  class Meta:
+      verbose_name = "Sub Category"
+      verbose_name_plural = "Sub Categories"
+      ordering = ["display_order", "name"]
 
   def save(self, *args, **kwargs):
     if not self.slug:
@@ -32,6 +55,17 @@ class Brand(models.Model):
   name = models.CharField(max_length=100, unique=True)
   slug = models.SlugField(unique=True)
 
+  display_order = models.PositiveIntegerField(default=0)
+  is_active = models.BooleanField(default=True)
+
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  class Meta:
+    verbose_name = "Brand"
+    verbose_name_plural = "Brands"
+    ordering = ["display_order", "name"]
+
   def save(self, *args, **kwargs):
     if not self.slug:
       self.slug = slugify(self.name)
@@ -44,6 +78,17 @@ class Brand(models.Model):
 class SpendRange(models.Model):
   low_range = models.PositiveIntegerField()
   high_range = models.PositiveIntegerField()
+
+  display_order = models.PositiveIntegerField(default=0)
+  is_active = models.BooleanField(default=True)
+
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  class Meta:
+    verbose_name = "Spend Range"
+    verbose_name_plural = "Spend Ranges"
+    ordering = ["display_order", "low_range"]
 
   def __str__(self):
       return f"{self.low_range} - {self.high_range}"

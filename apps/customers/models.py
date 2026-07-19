@@ -14,16 +14,19 @@ class Customer(models.Model):
       on_delete=models.SET_NULL,
       null=True,
       blank=True,
+      related_name="customers",
   )
 
   subcategories = models.ManyToManyField(
       SubCategory,
       blank=True,
+      related_name="customers",
   )
 
   brands = models.ManyToManyField(
       Brand,
       blank=True,
+      related_name="customers",
   )
 
   spend_range = models.ForeignKey(
@@ -31,6 +34,7 @@ class Customer(models.Model):
       on_delete=models.SET_NULL,
       null=True,
       blank=True,
+      related_name="customers",
   )
 
   note = models.TextField(blank=True, null=True)
@@ -38,6 +42,12 @@ class Customer(models.Model):
   notify_me = models.BooleanField(default=False)
 
   created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  class Meta:
+    verbose_name = "Customer"
+    verbose_name_plural = "Customers"
+    ordering = ["-created_at"]
 
   def __str__(self):
-      return f"{self.name} ({self.mobile})"
+      return f"{self.name}"
