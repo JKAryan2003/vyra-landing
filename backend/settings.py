@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import environ
 from pathlib import Path
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+from django.templatetags.static import static
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -61,7 +65,9 @@ ROOT_URLCONF = 'backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+          BASE_DIR / "templates",
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -142,4 +148,69 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
+}
+
+UNFOLD = {
+    "SITE_TITLE": env("SITE_TITLE"),
+    "SITE_HEADER": env("SITE_HEADER"),
+    "DASHBOARD_CALLBACK": "apps.core.dashboard.dashboard_callback",
+    "STYLES": [
+        lambda request: static("css/admin_dashboard.css"),
+    ],
+
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+
+        "navigation": [
+            {
+                "title": "Dashboard",
+                "icon": "dashboard",
+                "items": [
+                    {
+                        "title": "Home",
+                        "link": reverse_lazy("admin:index"),
+                    },
+                ],
+            },
+
+            {
+                "title": "Core",
+                "icon": "inventory_2",
+                "items": [
+                    {
+                        "title": "Categories",
+                        "link": reverse_lazy("admin:core_category_changelist"),
+                    },
+                    {
+                        "title": "Sub Categories",
+                        "link": reverse_lazy("admin:core_subcategory_changelist"),
+                    },
+                    {
+                        "title": "Brands",
+                        "link": reverse_lazy("admin:core_brand_changelist"),
+                    },
+                    {
+                        "title": "Spend Ranges",
+                        "link": reverse_lazy("admin:core_spendrange_changelist"),
+                    },
+                    {
+                        "title": "Area",
+                        "link": reverse_lazy("admin:core_area_changelist"),
+                    },
+                ],
+            },
+
+            {
+                "title": "Customers",
+                "icon": "groups",
+                "items": [
+                    {
+                        "title": "Customers",
+                        "link": reverse_lazy("admin:customers_customer_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
 }

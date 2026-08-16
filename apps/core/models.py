@@ -92,3 +92,20 @@ class SpendRange(models.Model):
 
   def __str__(self):
       return f"{self.low_range} - {self.high_range}"
+
+class Area(models.Model):
+  name = models.CharField(max_length=255, unique=True)
+  slug = models.SlugField(unique=True, blank=True)
+
+  is_active = models.BooleanField(default=True)
+
+  created_at = models.DateTimeField(auto_now_add=True)
+  updated_at = models.DateTimeField(auto_now=True)
+
+  class Meta:
+      verbose_name = "Area"
+      verbose_name_plural = "Areas"
+      ordering = ["name"]
+
+  def __str__(self):
+      return self.name

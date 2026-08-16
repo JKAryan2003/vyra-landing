@@ -1,0 +1,256 @@
+{% extends "admin/base_site.html" %}
+
+{% load i18n %}
+
+{% block content %}
+
+<div class="grid grid-cols-1 gap-6">
+
+    <!-- Header -->
+    <div>
+        <h1 class="text-2xl font-semibold dashboard-title">
+            VYRA Dashboard
+        </h1>
+
+        <p class="dashboard-subtitle mt-1">
+            Live customer interest data
+        </p>
+    </div>
+
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div class="dashboard-card rounded-xl p-6 shadow">
+            <div class="text-3xl font-bold dashboard-card-number">
+                {{ dashboard_total_customers }}
+            </div>
+
+            <div class="dashboard-card-label mt-1">
+                Total Signups
+            </div>
+        </div>
+
+
+        <div class="dashboard-card rounded-xl p-6 shadow">
+            <div class="text-3xl font-bold dashboard-card-number">
+                {{ dashboard_today_customers }}
+            </div>
+
+            <div class="dashboard-card-label mt-1">
+                Today
+            </div>
+        </div>
+
+
+        <div class="dashboard-card rounded-xl p-6 shadow">
+            <div class="text-3xl font-bold dashboard-card-number">
+                {{ dashboard_notify_me_count }}
+            </div>
+
+            <div class="dashboard-card-label mt-1">
+                Notify Me
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Demand By Area -->
+    <div class="dashboard-card rounded-xl p-6 shadow">
+
+        <h2 class="text-lg font-semibold mb-5">
+            Demand by Area
+        </h2>
+
+        <div class="space-y-4">
+
+            {% for item in dashboard_demand_by_area %}
+
+            <div>
+
+                <div class="flex justify-between mb-1">
+
+                    <span class="text-sm font-medium">
+                        {{ item.area }}
+                    </span>
+
+                    <span class="text-sm text-gray-500">
+                        {{ item.total }}
+                    </span>
+
+                </div>
+
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+
+                    <div
+                        class="bg-orange-600 h-2 rounded-full"
+                        style="width: {% widthratio item.total dashboard_total_customers 100 %}%"
+                    ></div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p class="text-gray-500">
+                No customer data available.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Categories -->
+    <div class="dashboard-card rounded-xl p-6 shadow">
+
+        <h2 class="text-lg font-semibold mb-5">
+            Top Categories
+        </h2>
+
+        <div class="space-y-4">
+
+            {% for item in dashboard_top_categories %}
+
+            <div>
+
+                <div class="flex justify-between mb-1">
+
+                    <span class="text-sm font-medium">
+                        {{ item.name }}
+                    </span>
+
+                    <span class="text-sm text-gray-500">
+                        {{ item.total }}
+                    </span>
+
+                </div>
+
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+
+                    <div
+                        class="bg-orange-600 h-2 rounded-full"
+                        style="width: {% widthratio item.total dashboard_total_customers 100 %}%"
+                    ></div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p class="text-gray-500">
+                No category data available.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Brands -->
+    <div class="dashboard-card rounded-xl p-6 shadow">
+
+        <h2 class="text-lg font-semibold mb-5">
+            Top Brands
+        </h2>
+
+        <div class="space-y-4">
+
+            {% for item in dashboard_top_brands %}
+
+            <div>
+
+                <div class="flex justify-between mb-1">
+
+                    <span class="text-sm font-medium">
+                        {{ item.name }}
+                    </span>
+
+                    <span class="text-sm text-gray-500">
+                        {{ item.total }}
+                    </span>
+
+                </div>
+
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+
+                    <div
+                        class="bg-orange-600 h-2 rounded-full"
+                        style="width: {% widthratio item.total dashboard_total_customers 100 %}%"
+                    ></div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p class="text-gray-500">
+                No brand data available.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+
+    <!-- Spending -->
+    <div class="dashboard-card rounded-xl p-6 shadow">
+
+        <h2 class="text-lg font-semibold mb-5">
+            Spending Range
+        </h2>
+
+        <div class="space-y-4">
+
+            {% for item in dashboard_spending_ranges %}
+
+            <div>
+
+                <div class="flex justify-between mb-1">
+
+                    <span class="text-sm font-medium">
+                        ₹{{ item.low_range }} - ₹{{ item.high_range }}
+                    </span>
+
+                    <span class="text-sm text-gray-500">
+                        {{ item.total }}
+                    </span>
+
+                </div>
+
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+
+                    <div
+                        class="bg-orange-600 h-2 rounded-full"
+                        style="width: {% widthratio item.total dashboard_total_customers 100 %}%"
+                    ></div>
+
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <p class="text-gray-500">
+                No spending data available.
+            </p>
+
+            {% endfor %}
+
+        </div>
+
+    </div>  
+
+</div>
+
+{% endblock %}

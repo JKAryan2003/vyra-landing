@@ -1,5 +1,5 @@
 from django.db import models
-from apps.core.models import Category, SubCategory, Brand, SpendRange
+from apps.core.models import Category, SubCategory, Brand, SpendRange, Area
 
 
 class Customer(models.Model):
@@ -7,7 +7,13 @@ class Customer(models.Model):
   mobile = models.CharField(max_length=10, unique=True)
   email = models.EmailField(blank=True, null=True)
 
-  area = models.CharField(max_length=255)
+  area = models.ForeignKey(
+        Area,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="customers",
+    )
 
   category = models.ForeignKey(
       Category,

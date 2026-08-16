@@ -1,0 +1,73 @@
+.dashboard-title {
+    color: var(--color-font-important-light);
+}
+
+.dashboard-subtitle {
+    color: var(--color-font-subtle-light);
+}
+
+.dashboard-card-number {
+    color: var(--color-font-important-light);
+}
+
+.dashboard-card-label {
+    color: var(--color-font-subtle-light);
+}
+
+.dashboard-section-title {
+    color: var(--color-font-important-light);
+}
+
+.dashboard-label {
+    color: var(--color-font-default-light);
+}
+
+.dashboard-count {
+    color: var(--color-font-subtle-light);
+}
+
+.dashboard-title {
+    color: var(--color-font-important-light);
+}
+
+.dark .dashboard-title {
+    color: var(--color-font-important-dark);
+}
+
+.dashboard-subtitle {
+    color: var(--color-font-subtle-light);
+}
+
+.dark .dashboard-subtitle {
+    color: var(--color-font-subtle-dark);
+}
+
+.dashboard-card-number {
+    color: var(--color-font-important-light);
+}
+
+.dark .dashboard-card-number {
+    color: var(--color-font-important-dark);
+}
+
+.dashboard-card-label {
+    color: var(--color-font-subtle-light);
+}
+
+.dark .dashboard-card-label {
+    color: var(--color-font-subtle-dark);
+}
+
+.dashboard-cards {
+  color: var(--color-)
+}
+
+.dashboard-card {
+    background-color: #efefef;
+    
+}
+
+.dark .dashboard-card {
+    background: #2c455e;
+}
+
