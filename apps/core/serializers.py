@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from .models import Category, SubCategory, Brand, SpendRange
+from apps.core.models import (
+    Category,
+    SubCategory,
+    Brand,
+    SpendRange,
+    Area,
+)
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -20,7 +26,6 @@ class SubCategorySerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
-            "category",
         )
 
 
@@ -31,21 +36,24 @@ class BrandSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "slug",
-            "category",
         )
 
 
 class SpendRangeSerializer(serializers.ModelSerializer):
-    label = serializers.SerializerMethodField()
-
     class Meta:
         model = SpendRange
         fields = (
             "id",
             "low_range",
             "high_range",
-            "label",
         )
 
-    def get_label(self, obj):
-        return f"₹{obj.low_range} - ₹{obj.high_range}"
+
+class AreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Area
+        fields = (
+            "id",
+            "name",
+            "slug",
+        )
