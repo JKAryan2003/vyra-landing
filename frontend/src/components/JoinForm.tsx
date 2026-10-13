@@ -42,6 +42,41 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
   const [email, setEmail] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
 
+
+  // Validation
+  const validateDetails = () => {
+    if (!name.trim()) {
+      alert("Please enter your name.");
+      return false;
+    }
+
+    if (!/^\d{10}$/.test(mobile)) {
+      alert("Please enter a valid 10-digit mobile number.");
+      return false;
+    }
+
+    if (!selectedArea) {
+      alert("Please select your area.");
+      return false;
+    }
+
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      alert("Please enter a valid email address.");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Continue button onClick
+  const handleContinue = () => {
+    if (currentStep === 1 && !validateDetails()) {
+      return;
+    }
+
+    setCurrentStep((step) => Math.min(step + 1, 6));
+  }
+
   // Area use effect
   useEffect(() => {
     const fetchAreas = async () => {
@@ -589,7 +624,7 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
         <button
           type="button"
           disabled={currentStep === 6}
-          onClick={() => setCurrentStep((step) => step + 1)}
+          onClick={() => handleContinue()}
           className="rounded-full bg-[#FFDD9C] px-5 py-2 text-sm font-bold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
         >
           Continue →

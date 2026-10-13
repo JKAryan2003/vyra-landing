@@ -15,13 +15,12 @@ class Customer(models.Model):
         related_name="customers",
     )
 
-  category = models.ForeignKey(
-      Category,
-      on_delete=models.SET_NULL,
-      null=True,
-      blank=True,
-      related_name="customers",
-  )
+  
+  categories = models.ManyToManyField(
+        Category,
+        blank=True,
+        related_name="customers",
+    )
 
   subcategories = models.ManyToManyField(
       SubCategory,
