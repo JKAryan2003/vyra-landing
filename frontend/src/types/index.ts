@@ -35,7 +35,7 @@ export interface CustomerForm {
 
   area: number | null;
 
-  category: number | null;
+  categories: number[];
 
   subcategories: number[];
 

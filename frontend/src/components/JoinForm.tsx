@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getAreas, getCategories, getSubCategories, getBrands, getSpendRanges } from "../services/api";
+import { createCustomer, getAreas, getCategories, getSubCategories, getBrands, getSpendRanges } from "../services/api";
 import type { Area, Category, SubCategory, Brand, SpendRange } from "../types";
 
 const JoinForm = ({ currentStep, setCurrentStep }) => {
@@ -43,39 +43,173 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
   const [selectedArea, setSelectedArea] = useState("");
 
 
-  // Validation
-  const validateDetails = () => {
-    if (!name.trim()) {
-      alert("Please enter your name.");
-      return false;
+  const [submitErrors, setSubmitErrors] = useState<Record<string, string[]>>({});
+  const [submitError, setSubmitError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+
+  const parseBackendErrors = (error: unknown) => {
+    if (!(error instanceof Error)) {
+      return {
+        fieldErrors: {} as Record<string, string[]>,
+        generalError: "Something went wrong. Please try again.",
+      };
     }
 
-    if (!/^\d{10}$/.test(mobile)) {
-      alert("Please enter a valid 10-digit mobile number.");
-      return false;
+    try {
+      const data = JSON.parse(error.message);
+
+      if (data && typeof data === "object" && !Array.isArray(data)) {
+        const fieldErrors: Record<string, string[]> = {};
+        const generalMessages: string[] = [];
+
+        for (const [field, value] of Object.entries(data)) {
+          const messages = Array.isArray(value)
+            ? value.map(String)
+            : [String(value)];
+
+          if (field === "detail" || field === "non_field_errors") {
+            generalMessages.push(...messages);
+          } else {
+            fieldErrors[field] = messages;
+          }
+        }
+
+        return {
+          fieldErrors,
+          generalError: generalMessages.join(" "),
+        };
+      }
+    } catch {
+      // The error message wasn't JSON.
     }
 
-    if (!selectedArea) {
-      alert("Please select your area.");
-      return false;
-    }
-
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      alert("Please enter a valid email address.");
-      return false;
-    }
-
-    return true;
+    return {
+      fieldErrors: {} as Record<string, string[]>,
+      generalError: error.message || "Something went wrong. Please try again.",
+    };
   };
 
+
+
+  const handleSubmit = async () => {
+    setSubmitErrors({});
+    setSubmitError("");
+    setIsSubmitting(true);
+
+    try {
+      await createCustomer({
+        name: name.trim(),
+        mobile: mobile.trim(),
+        email: email.trim(),
+        area: selectedArea ? Number(selectedArea) : null,
+        categories: selectedCategories,
+        subcategories: selectedSubCategories,
+        brands: selectedBrands,
+        spend_range: selectedSpendRange,
+        note: "",
+        notify_me: notifyMe,
+      });
+
+      // Temporary success behavior; we'll improve this later.
+
+      alert("Thank you! Your response has been submitted.");
+
+      // Reset user details
+      setName("");
+      setMobile("");
+      setEmail("");
+      setSelectedArea("");
+
+      // Reset selections
+      setSelectedCategories([]);
+      setSelectedSubCategories([]);
+      setSelectedBrands([]);
+      setSelectedSpendRange(null);
+
+      // Reset notification preference
+      setNotifyMe(true);
+
+      // Reset validation errors
+      setSubmitErrors({});
+      setSubmitError("");
+
+      // Return to the first step
+      setCurrentStep(1);
+
+    } catch (error: unknown) {
+      const parsed = parseBackendErrors(error);
+
+      setSubmitErrors(parsed.fieldErrors);
+      setSubmitError(parsed.generalError);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+
   // Continue button onClick
+
+
   const handleContinue = () => {
-    if (currentStep === 1 && !validateDetails()) {
+    setSubmitErrors({});
+    setSubmitError("");
+
+    if (currentStep === 1) {
+      const errors: Record<string, string[]> = {};
+
+      if (!name.trim()) {
+        errors.name = ["Name is required."];
+      }
+
+      if (!/^\d{10}$/.test(mobile.trim())) {
+        errors.mobile = ["Enter a valid 10-digit mobile number."];
+      }
+
+      if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+        errors.email = ["Enter a valid email address."];
+      }
+
+      if (!selectedArea) {
+        errors.area = ["Please select your area."];
+      }
+
+      if (Object.keys(errors).length > 0) {
+        setSubmitErrors(errors);
+        return;
+      }
+    }
+
+
+    // Validate selections on steps 2–5
+    const errors: Record<string, string[]> = {};
+
+    if (currentStep === 2 && selectedCategories.length === 0) {
+      errors.categories = ["Please select at least one category."];
+    }
+
+    if (currentStep === 3 && selectedSubCategories.length === 0) {
+      errors.subcategories = ["Please select at least one subcategory."];
+    }
+
+    if (currentStep === 4 && selectedBrands.length === 0) {
+      errors.brands = ["Please select at least one brand."];
+    }
+
+    if (currentStep === 5 && selectedSpendRange === null) {
+      errors.spend_range = ["Please select a spend range."];
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setSubmitErrors(errors);
       return;
     }
 
+
     setCurrentStep((step) => Math.min(step + 1, 6));
-  }
+  };
+
+
 
   // Area use effect
   useEffect(() => {
@@ -194,6 +328,17 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
         and help shape what's coming next.
       </p>
 
+
+      {submitError && (
+        <div
+          role="alert"
+          className="mb-4 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {submitError}
+        </div>
+      )}
+
+
       {/* Step 1 fields */}
       {currentStep === 1 && (
         <>
@@ -209,11 +354,22 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               id="name"
               name="name"
               value={name}
-              onChange={(event) => setName(event.target.value)}
+              onChange={(event) => {
+                setName(event.target.value);
+                setSubmitErrors((prev) => ({ ...prev, name: [] }));
+              }}
               type="text"
               placeholder="Enter your name"
               className="w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#E73F1E] focus:ring-2 focus:ring-[#E73F1E]/20"
             />
+
+
+            {submitErrors.name && (
+              <p className="mt-1 text-sm text-red-600" role="alert">
+                {submitErrors.name.join(" ")}
+              </p>
+            )}
+
           </div>
 
 
@@ -229,13 +385,24 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               id="mobile"
               name="mobile"
               value={mobile}
-              onChange={(event) => setMobile(event.target.value)}
+              onChange={(event) => {
+                setMobile(event.target.value);
+                setSubmitErrors((prev) => ({ ...prev, mobile: [] }));
+              }}
               type="tel"
               inputMode="numeric"
               maxLength={10}
               placeholder="Enter your 10-digit mobile number"
               className="w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#E73F1E] focus:ring-2 focus:ring-[#E73F1E]/20"
             />
+
+
+            {submitErrors.mobile && (
+              <p className="mt-1 text-sm text-red-600" role="alert">
+                {submitErrors.mobile.join(" ")}
+              </p>
+            )}
+
           </div>
 
 
@@ -251,11 +418,22 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               id="email"
               name="email"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setSubmitErrors((prev) => ({ ...prev, email: [] }));
+              }}
               type="email"
               placeholder="you@example.com"
               className="w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-sm outline-none transition focus:border-[#E73F1E] focus:ring-2 focus:ring-[#E73F1E]/20"
             />
+
+
+            {submitErrors.email && (
+              <p className="mt-1 text-sm text-red-600" role="alert">
+                {submitErrors.email.join(" ")}
+              </p>
+            )}
+
           </div>
 
           <div className="mt-4">
@@ -270,7 +448,10 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               id="area"
               name="area"
               value={selectedArea}
-              onChange={(event) => setSelectedArea(event.target.value)}
+              onChange={(event) => {
+                setSelectedArea(event.target.value);
+                setSubmitErrors((prev) => ({ ...prev, area: [] }));
+              }}
               disabled={loadingAreas || areas.length === 0}
               className="w-full rounded-xl border border-black/15 bg-white px-4 py-3 text-sm text-black outline-none transition focus:border-[#E73F1E] focus:ring-2 focus:ring-[#E73F1E]/20 disabled:cursor-not-allowed disabled:opacity-60"
             >
@@ -289,6 +470,12 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               ))}
             </select>
 
+
+            {submitErrors.area && (
+              <p className="mt-1 text-sm text-red-600" role="alert">
+                {submitErrors.area.join(" ")}
+              </p>
+            )}
 
           </div>
         </>
@@ -338,6 +525,11 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
                           ? previous.filter((id) => id !== category.id)
                           : [...previous, category.id]
                       );
+
+                      setSubmitErrors((prev) => ({
+                        ...prev,
+                        categories: [],
+                      }));
                     }}
                     className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${isSelected
                       ? "border-[#E73F1E] bg-[#E73F1E] text-white"
@@ -363,6 +555,14 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               {selectedCategories.length === 1 ? "y" : "ies"} selected
             </p>
           )}
+
+
+          {submitErrors.categories && (
+            <p className="mt-1 text-sm text-red-600" role="alert">
+              {submitErrors.categories.join(" ")}
+            </p>
+          )}
+
         </div>
       )}
 
@@ -408,6 +608,11 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
                           ? previous.filter((id) => id !== subCategory.id)
                           : [...previous, subCategory.id]
                       );
+
+                      setSubmitErrors((prev) => ({
+                        ...prev,
+                        subcategories: [],
+                      }));
                     }}
                     className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${isSelected
                       ? "border-[#E73F1E] bg-[#E73F1E] text-white"
@@ -435,6 +640,14 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               {selectedSubCategories.length === 1 ? "y" : "ies"} selected
             </p>
           )}
+
+
+          {submitErrors.subcategories && (
+            <p className="mt-1 text-sm text-red-600" role="alert">
+              {submitErrors.subcategories.join(" ")}
+            </p>
+          )}
+
         </div>
       )}
 
@@ -480,6 +693,11 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
                           ? previous.filter((id) => id !== brand.id)
                           : [...previous, brand.id]
                       );
+
+                      setSubmitErrors((prev) => ({
+                        ...prev,
+                        brands: [],
+                      }));
                     }}
                     className={`rounded-full border px-4 py-3 text-sm font-semibold transition ${isSelected
                       ? "border-[#E73F1E] bg-[#E73F1E] text-white"
@@ -505,6 +723,16 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               {selectedBrands.length === 1 ? "" : "s"} selected
             </p>
           )}
+
+
+
+          {submitErrors.brands && (
+            <p className="mt-1 text-sm text-red-600" role="alert">
+              {submitErrors.brands.join(" ")}
+            </p>
+          )}
+
+
         </div>
       )}
 
@@ -545,7 +773,16 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
                     key={range.id}
                     type="button"
                     aria-pressed={isSelected}
-                    onClick={() => setSelectedSpendRange(range.id)}
+
+                    onClick={() => {
+                      setSelectedSpendRange(range.id);
+
+                      setSubmitErrors((prev) => ({
+                        ...prev,
+                        spend_range: [],
+                      }));
+                    }}
+
                     className={`rounded-xl border p-4 text-left transition ${isSelected
                       ? "border-[#E73F1E] bg-[#E73F1E]/10"
                       : "border-black/15 bg-white hover:border-[#E73F1E]"
@@ -572,6 +809,14 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
                 No spend ranges available yet.
               </p>
             )}
+
+
+          {submitErrors.spend_range && (
+            <p className="mt-1 text-sm text-red-600" role="alert">
+              {submitErrors.spend_range.join(" ")}
+            </p>
+          )}
+
         </div>
       )}
 
@@ -606,6 +851,13 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
               </span>
             </span>
           </label>
+
+          {submitErrors.notify_me && (
+            <p className="mt-1 text-sm text-red-600" role="alert">
+              {submitErrors.notify_me.join(" ")}
+            </p>
+          )}
+
         </div>
       )}
 
@@ -621,14 +873,27 @@ const JoinForm = ({ currentStep, setCurrentStep }) => {
           ← Back
         </button>
 
+
         <button
           type="button"
-          disabled={currentStep === 6}
-          onClick={() => handleContinue()}
-          className="rounded-full bg-[#FFDD9C] px-5 py-2 text-sm font-bold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40"
+          disabled={isSubmitting || currentStep === 6}
+          onClick={handleContinue}
+          className="flex-1 rounded-full border border-[#E73F1E] px-5 py-3 text-[#E73F1E] transition hover:bg-[#E73F1E] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           Continue →
         </button>
+
+        {currentStep === 6 && (
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={handleSubmit}
+            className="flex-1 rounded-full bg-[#E73F1E] px-5 py-3 text-white transition hover:bg-[#c93418] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isSubmitting ? "Submitting..." : "Finish"}
+          </button>
+        )}
+
       </div>
 
 

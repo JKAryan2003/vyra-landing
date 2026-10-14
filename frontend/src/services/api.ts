@@ -9,24 +9,32 @@ import type {
 
 const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
+
 async function apiRequest<T>(
   endpoint: string,
   options?: RequestInit
 ): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,
     },
-    ...options,
   });
 
+  const data = await response.json().catch(() => null);
+
   if (!response.ok) {
-    throw new Error(`API Error: ${response.status}`);
+    throw new Error(
+      JSON.stringify(data ?? {
+        detail: `Request failed with status ${response.status}`,
+      })
+    );
   }
 
-  return response.json();
+  return data as T;
 }
+
 
 export const getCategories = () =>
   apiRequest<Category[]>("/categories/");
